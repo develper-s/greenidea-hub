@@ -1,12 +1,23 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import AuthForm from "@/components/AuthForm";
+import Navbar from "@/components/Navbar";
 
 const Index = () => {
+  const isAuthenticated = false; // TODO: Implement auth state
+
+  if (!isAuthenticated) {
+    return <AuthForm />;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="pt-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-4xl font-bold mb-8">Welcome to GreenFuture IMS</h1>
+          {/* TODO: Add dashboard content */}
+        </div>
+      </main>
     </div>
   );
 };
