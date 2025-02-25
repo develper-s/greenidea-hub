@@ -4,16 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { LucideLeaf } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const { login, register } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement authentication
-    console.log({ email, password });
+    try {
+      if (isLogin) {
+        await login(email, password);
+      } else {
+        await register(email, password, name);
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+    }
   };
 
   return (
@@ -26,6 +36,18 @@ const AuthForm = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <div className="space-y-2">
+              <Input
+                type="text"
+                placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="input-ring"
+                required
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Input
               type="email"
@@ -33,6 +55,7 @@ const AuthForm = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-ring"
+              required
             />
           </div>
           <div className="space-y-2">
@@ -42,6 +65,7 @@ const AuthForm = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input-ring"
+              required
             />
           </div>
           <Button type="submit" className="w-full">

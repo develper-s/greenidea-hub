@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import AuthForm from "@/components/AuthForm";
 import Navbar from "@/components/Navbar";
 import IdeaCard from "@/components/IdeaCard";
@@ -28,7 +28,7 @@ const mockIdeas = [
 ];
 
 const Index = () => {
-  const isAuthenticated = false; // TODO: Implement auth state
+  const { user } = useAuth();
   const [ideas, setIdeas] = useState(mockIdeas);
 
   const handleVote = (ideaId: number, type: 'up' | 'down') => {
@@ -41,7 +41,7 @@ const Index = () => {
     );
   };
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <AuthForm />;
   }
 
@@ -51,12 +51,9 @@ const Index = () => {
       <main className="pt-20 px-4 pb-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Left sidebar - can be used for filters or categories later */}
             <div className="md:col-span-1">
               <IdeaSubmissionForm />
             </div>
-
-            {/* Main content - Ideas list */}
             <div className="md:col-span-2 space-y-4">
               <h1 className="text-2xl font-bold mb-6">Latest Ideas</h1>
               {ideas.map((idea) => (
