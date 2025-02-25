@@ -2,12 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '@/services/api';
 import { toast } from 'sonner';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
+import type { User } from '@/types/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -24,10 +19,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await authApi.login(email, password);
-      const userData = response.user;
       localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      setUser(response.user);
       toast.success('Successfully logged in!');
     } catch (error) {
       toast.error('Login failed. Please check your credentials.');
@@ -38,10 +32,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = async (email: string, password: string, name: string) => {
     try {
       const response = await authApi.register(name, email, password);
-      const userData = response.user;
       localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      setUser(response.user);
       toast.success('Registration successful!');
     } catch (error) {
       toast.error('Registration failed. Please try again.');
@@ -58,8 +51,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const token = localStorage.getItem('token');
+    
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
+    } else {
+      // Clear everything if we're missing either token or user
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
   }, []);
 

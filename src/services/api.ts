@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import type { AuthResponse } from '@/types/auth';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -20,12 +21,12 @@ api.interceptors.request.use((config) => {
 });
 
 export const authApi = {
-  login: async (email: string, password: string) => {
-    const response = await api.post('/auth/login', { email, password });
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/login', { email, password });
     return response.data;
   },
-  register: async (name: string, email: string, password: string) => {
-    const response = await api.post('/auth/register', { name, email, password });
+  register: async (name: string, email: string, password: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/register', { name, email, password });
     return response.data;
   },
 };
