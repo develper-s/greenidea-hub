@@ -9,20 +9,26 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const login = async (email: string, password: string) => {
     try {
       const response = await authApi.login(email, password);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
-      toast.success('Successfully logged in!');
+      if (response.token && response.user) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        setUser(response.user);
+        toast.success('Successfully logged in!');
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (error) {
       toast.error('Login failed. Please check your credentials.');
       throw error;
@@ -32,10 +38,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = async (email: string, password: string, name: string) => {
     try {
       const response = await authApi.register(name, email, password);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
-      toast.success('Registration successful!');
+      if (response.token && response.user) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        setUser(response.user);
+        toast.success('Registration successful!');
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (error) {
       toast.error('Registration failed. Please try again.');
       throw error;
@@ -51,26 +61,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const loadUser = () => {
-      const storedUser = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
-      
-      if (storedUser && token) {
-        try {
+      setIsLoading(true);
+      try {
+        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        
+        if (storedUser && token) {
           const parsedUser = JSON.parse(storedUser);
-          // Validate that the parsed user has all required fields
           if (parsedUser.id && parsedUser.email && parsedUser.name) {
             setUser(parsedUser);
           } else {
-            // Invalid user data, clear everything
             logout();
           }
-        } catch (error) {
-          // Invalid JSON, clear everything
-          logout();
         }
-      } else {
-        // Missing token or user, clear everything
+      } catch (error) {
+        console.error('Error loading user:', error);
         logout();
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -78,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

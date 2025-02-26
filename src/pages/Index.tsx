@@ -1,5 +1,4 @@
 
-import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ideasApi } from "@/services/api";
@@ -20,12 +19,13 @@ interface Idea {
 }
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: ideas = [], isLoading } = useQuery({
+  const { data: ideas = [], isLoading: ideasLoading } = useQuery({
     queryKey: ['ideas'],
     queryFn: ideasApi.getIdeas,
+    enabled: !!user, // Only fetch ideas when user is authenticated
   });
 
   const voteMutation = useMutation({
@@ -43,6 +43,16 @@ const Index = () => {
     voteMutation.mutate({ ideaId, type });
   };
 
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show auth form if not authenticated
   if (!user) {
     return <AuthForm />;
   }
@@ -58,7 +68,7 @@ const Index = () => {
             </div>
             <div className="md:col-span-2 space-y-4">
               <h1 className="text-2xl font-bold mb-6">Latest Ideas</h1>
-              {isLoading ? (
+              {ideasLoading ? (
                 <div className="text-center">Loading ideas...</div>
               ) : (
                 ideas.map((idea: Idea) => (
