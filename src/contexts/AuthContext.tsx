@@ -50,17 +50,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      // Clear everything if we're missing either token or user
-      setUser(null);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    }
+    const loadUser = () => {
+      const storedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      
+      if (storedUser && token) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          // Validate that the parsed user has all required fields
+          if (parsedUser.id && parsedUser.email && parsedUser.name) {
+            setUser(parsedUser);
+          } else {
+            // Invalid user data, clear everything
+            logout();
+          }
+        } catch (error) {
+          // Invalid JSON, clear everything
+          logout();
+        }
+      } else {
+        // Missing token or user, clear everything
+        logout();
+      }
+    };
+
+    loadUser();
   }, []);
 
   return (
